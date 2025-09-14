@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aviation Calculator</title>
+  
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✈️</text></svg>">
+  
+  <style>
+    :root {
+      --bg-color: #f4f4f4;
+      --text-color: #333;
+      --border-color: #ddd;
+      --highlight-color: #0d6efd;
+      --header-bg: #f2f2f2;
+      --row-hover: #eee;
+      --input-bg: #fff;
+      --input-border: #ccc;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-color: #1e1e1e;
+        --text-color: #e0e0e0;
+        --header-bg: #2d2d2d;
+        --border-color: #444;
+        --row-hover: #3a3a3a;
+        --input-bg: #2d2d2d;
+        --input-border: #555;
+      }
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    h1, h2, h3 {
+      color: var(--text-color);
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2em;
+      margin: 1rem 0 2rem;
+    }
+
+    h2 {
+      font-size: 1.8em;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    h3 {
+      margin-bottom: 1.2rem;
+      font-size: 1.3rem;
+      text-align: center;
+    }
+
+    .bubble {
+      width: 100%;
+      margin-bottom: 2rem;
+      border-collapse: collapse;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-color);
+    }
+    
+    .bubble th, .bubble td {
+      padding: 12px 15px;
+      text-align: left;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-color);
+    }
+    
+    .bubble th {
+      background-color: var(--header-bg);
+      font-weight: bold;
+      text-align: center;
+    }
+    
+    .bubble th[colspan="2"] {
+      text-align: center;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      font-size: 1rem;
+      line-height: 1.5;
+      color: var(--text-color);
+      background-color: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 4px;
+      transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    select {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      font-size: 1rem;
+      line-height: 1.5;
+      color: #ffffff;
+      background-color: #1e1e1e;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+    }
+    
+    select:focus {
+      border-color: var(--highlight-color);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.2);
+    }
+
+    .form-control:focus {
+      border-color: var(--highlight-color);
+      outline: 0;
+      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+
+    .btn {
+      display: inline-block;
+      font-weight: 400;
+      text-align: center;
+      white-space: nowrap;
+      vertical-align: middle;
+      user-select: none;
+      border: 1px solid transparent;
+      padding: 0.375rem 0.75rem;
+      font-size: 1rem;
+      line-height: 1.5;
+      border-radius: 0.25rem;
+      transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
+        border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      color: #fff;
+      background-color: var(--highlight-color);
+      border-color: var(--highlight-color);
+    }
+
+    .btn-primary:hover {
+      background-color: #0b5ed7;
+      border-color: #0a58ca;
+    }
+
+    .unit-btn {
+      padding: 0.375rem 0.75rem;
+      font-size: 1rem;
+      line-height: 1.5;
+      border-radius: 0.25rem;
+      color: var(--text-color);
+      background-color: var(--input-bg);
+      border: 1px solid var(--input-border);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .unit-btn:hover {
+      background-color: var(--row-hover);
+    }
+
+    .unit-btn.active {
+      color: #fff;
+      background-color: var(--highlight-color);
+      border-color: var(--highlight-color);
+    }
+
+    .btn-group {
+      display: flex;
+      margin-bottom: 1rem;
+      justify-content: center;
+    }
+
+    .btn-group .unit-btn:not(:first-child) {
+      margin-left: -1px;
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+
+    .btn-group .unit-btn:not(:last-child) {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    .result {
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: #1e1e1e;
+      color: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+    }
+
+    .result div {
+      margin: 0.5rem 0;
+    }
+
+    input[type="number"],
+    input[type="text"] {
+      background-color: #1e1e1e;
+      color: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .input-group {
+      margin-bottom: 1rem;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .mt-3 {
+      margin-top: 1rem;
+      margin-bottom: 10px;
+      color: var(--highlight-color);
+      border-bottom: none;
+    }
+    
+    .header p {
+      color: var(--text-color);
+      opacity: 0.8;
+      max-width: 800px;
+      margin: 0 auto;
+      font-size: 1.1em;
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h2>Aviation Calculator</h2>
+  <p style="text-align: center; margin-bottom: 20px; color: var(--text-color); opacity: 0.8;">Essential Simulator Tools</p>
+
+  <div class="container">
+    <table class="bubble">
+      <thead>
+        <tr>
+          <th colspan="2">Altitude Conversion</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td colspan="2" style="text-align: center; padding: 15px 0;">
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+              <tr>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">Feet</td>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">Meters</td>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">Flight Level</td>
+              </tr>
+              <tr>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">
+                  <input type="number" id="feetInput" value="0" placeholder="Feet" class="form-control" style="text-align: center; width: 100%; box-sizing: border-box;" oninput="convertFromFeet(this.value)">
+                  <div style="margin-top: 5px;"><span id="feetResult">0</span> ft</div>
+                </td>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">
+                  <input type="number" id="metersInput" value="0" placeholder="Meters" class="form-control" style="text-align: center; width: 100%; box-sizing: border-box;" oninput="convertFromMeters(this.value)">
+                  <div style="margin-top: 5px;"><span id="metersResult">0</span> m</div>
+                </td>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">
+                  <input type="text" id="flInput" value="0" placeholder="Flight Level" class="form-control" style="text-align: center; width: 100%; box-sizing: border-box;" oninput="convertFromFL(this.value)">
+                  <div style="margin-top: 5px;"><span id="flResult">FL000</span></div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="bubble">
+      <thead>
+        <tr>
+          <th colspan="2">Speed Conversion</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td colspan="2" style="text-align: center; padding: 15px 0;">
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+              <tr>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">Knots</td>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">km/h</td>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">mph</td>
+              </tr>
+              <tr>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">
+                  <input type="number" id="knotsInput" value="0" placeholder="Knots" class="form-control" style="text-align: center; width: 100%; box-sizing: border-box;" oninput="convertFromKnots(this.value)">
+                  <div style="margin-top: 5px;"><span id="knotsResult">0.0</span> kt</div>
+                </td>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">
+                  <input type="number" id="kmhInput" value="0" placeholder="km/h" class="form-control" style="text-align: center; width: 100%; box-sizing: border-box;" oninput="convertFromKmh(this.value)">
+                  <div style="margin-top: 5px;"><span id="kmhResult">0.0</span> km/h</div>
+                </td>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">
+                  <input type="number" id="mphInput" value="0" placeholder="mph" class="form-control" style="text-align: center; width: 100%; box-sizing: border-box;" oninput="convertFromMph(this.value)">
+                  <div style="margin-top: 5px;"><span id="mphResult">0.0</span> mph</div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="bubble">
+      <thead>
+        <tr>
+          <th colspan="2">Distance Conversion</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td colspan="2" style="text-align: center; padding: 15px 0;">
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+              <tr>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">Nautical Miles</td>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">Statute Miles</td>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">Kilometers</td>
+              </tr>
+              <tr>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">
+                  <input type="number" id="nmInput" value="0" placeholder="Nautical Miles" class="form-control" style="text-align: center; width: 100%; box-sizing: border-box;" oninput="convertFromNm(this.value)">
+                  <div style="margin-top: 5px;"><span id="nmResult">0.00</span> nm</div>
+                </td>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">
+                  <input type="number" id="smInput" value="0" placeholder="Statute Miles" class="form-control" style="text-align: center; width: 100%; box-sizing: border-box;" oninput="convertFromSm(this.value)">
+                  <div style="margin-top: 5px;"><span id="smResult">0.00</span> mi</div>
+                </td>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">
+                  <input type="number" id="kmInput" value="0" placeholder="Kilometers" class="form-control" style="text-align: center; width: 100%; box-sizing: border-box;" oninput="convertFromKm(this.value)">
+                  <div style="margin-top: 5px;"><span id="kmResult">0.00</span> km</div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="bubble">
+      <thead>
+        <tr>
+          <th colspan="2">Fuel Conversion</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td colspan="2" style="text-align: center; padding: 15px 0;">
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+              <tr>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">Pounds (lbs)</td>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">Kilograms (kg)</td>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">US Gallons (USG)</td>
+              </tr>
+              <tr>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">
+                  <input type="number" id="lbsInput" value="0" placeholder="Pounds" class="form-control" style="text-align: center; width: 100%; box-sizing: border-box;" oninput="convertFromLbs(this.value)">
+                  <div style="margin-top: 5px;"><span id="lbsResult">0.0</span> lbs</div>
+                </td>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">
+                  <input type="number" id="kgInput" value="0" placeholder="Kilograms" class="form-control" style="text-align: center; width: 100%; box-sizing: border-box;" oninput="convertFromKg(this.value)">
+                  <div style="margin-top: 5px;"><span id="kgResult">0.0</span> kg</div>
+                </td>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">
+                  <input type="number" id="usgInput" value="0" placeholder="US Gallons" class="form-control" style="text-align: center; width: 100%; box-sizing: border-box;" oninput="convertFromUsg(this.value)">
+                  <div style="margin-top: 5px;"><span id="usgResult">0.0</span> USG</div>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="3" style="text-align: center; padding: 10px 0 0 0;">
+                  <select id="fuelDensity" class="form-control" style="max-width: 350px; margin: 0 auto;" onchange="updateFuelConversions()">
+                <!-- Jet Fuels (Most Common) -->
+                <option value="6.71" selected>Jet A-1 (6.71 lbs/USG) - Most Common Jet Fuel</option>
+                <option value="6.68">Jet A (6.68 lbs/USG) - US Standard Jet Fuel</option>
+                <option value="6.75">Jet B (6.75 lbs/USG) - Wide-cut Jet Fuel</option>
+                
+                <!-- Avgas -->
+                <option value="6.0">Avgas 100LL (6.0 lbs/USG) - Most Common Piston Engine Fuel</option>
+                <option value="6.01">Avgas 100 (6.01 lbs/USG) - High Lead</option>
+                <option value="5.8">Avgas 80/87 (5.8 lbs/USG) - Low Lead</option>
+                <option value="6.02">Avgas 82UL (6.02 lbs/USG) - Unleaded</option>
+                <option value="6.0">Avgas 91/96 (6.0 lbs/USG) - Military Grade</option>
+                
+                <!-- Military Fuels -->
+                <option value="6.77">JP-4 (6.77 lbs/USG) - Military Jet Fuel</option>
+                <option value="6.48">JP-5 (6.48 lbs/USG) - Military Ship-based Aircraft</option>
+                <option value="6.75">JP-8 (6.75 lbs/USG) - Military Standard</option>
+                <option value="6.55">JP-10 (6.55 lbs/USG) - Missile Fuel</option>
+                
+                <!-- Alternative Fuels -->
+                <option value="6.6">Bio-Jet (6.6 lbs/USG) - Sustainable Aviation Fuel</option>
+                <option value="6.4">CTL (6.4 lbs/USG) - Coal-to-Liquid</option>
+                <option value="6.3">GTL (6.3 lbs/USG) - Gas-to-Liquid</option>
+                
+                <!-- Special Purpose -->
+                <option value="6.7">TS-1 (6.7 lbs/USG) - Russian Jet Fuel</option>
+                <option value="6.5">RT (6.5 lbs/USG) - Russian Turbine Fuel</option>
+                <option value="6.72">No. 3 Jet Fuel (6.72 lbs/USG) - Chinese Standard</option>
+              </select>
+              <div style="font-size: 0.8em; color: var(--text-color); opacity: 0.7; margin-top: 5px;">
+                Select fuel type for accurate weight/volume conversion
+              </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="bubble">
+      <thead>
+        <tr>
+          <th colspan="2">Temperature Conversion</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td colspan="2" style="text-align: center; padding: 15px 0;">
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+              <tr>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">Celsius (°C)</td>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">Fahrenheit (°F)</td>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">Kelvin (K)</td>
+              </tr>
+              <tr>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">
+                  <input type="number" id="celsiusInput" value="0" placeholder="Celsius" class="form-control" style="text-align: center; width: 100%; box-sizing: border-box;" oninput="convertFromCelsius(this.value)">
+                  <div style="margin-top: 5px;"><span id="celsiusResult">0.0</span> °C</div>
+                </td>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">
+                  <input type="number" id="fahrenheitInput" value="0" placeholder="Fahrenheit" class="form-control" style="text-align: center; width: 100%; box-sizing: border-box;" oninput="convertFromFahrenheit(this.value)">
+                  <div style="margin-top: 5px;"><span id="fahrenheitResult">32.0</span> °F</div>
+                </td>
+                <td style="text-align: center; padding: 5px; border: 1px solid var(--border-color);">
+                  <input type="number" id="kelvinInput" value="0" placeholder="Kelvin" class="form-control" style="text-align: center; width: 100%; box-sizing: border-box;" oninput="convertFromKelvin(this.value)">
+                  <div style="margin-top: 5px;"><span id="kelvinResult">273.15</span> K</div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="bubble">
+      <thead>
+        <tr>
+          <th colspan="2">Weight & Balance</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td colspan="2" style="padding: 15px;">
+            <div class="input-group">
+              <label for="weight">Weight (lbs)</label>
+              <input type="number" id="weight" value="0" placeholder="Enter weight" class="form-control" oninput="calculateMoment()" style="text-align: center;">
+            </div>
+            <div class="input-group" style="margin: 15px 0;">
+              <label for="arm">ARM (inches)</label>
+              <input type="number" id="arm" value="0" placeholder="Enter ARM" class="form-control" oninput="calculateMoment()" style="text-align: center;">
+            </div>
+            <div class="result" id="wbResult" style="margin-top: 15px;">
+              <div>Moment: <span id="momentResult">0</span> lb-in</div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="bubble">
+      <thead>
+        <tr>
+          <th colspan="2">ISA Calculator</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td colspan="2" style="padding: 15px;">
+            <div class="input-group">
+              <label for="isaAltitude">Pressure Altitude (ft)</label>
+              <input type="number" id="isaAltitude" value="0" placeholder="Enter altitude" class="form-control" oninput="calculateISA()" style="text-align: center;">
+            </div>
+            <div class="input-group" style="margin: 15px 0;">
+              <label for="isaDeviation">ISA Deviation (°C)</label>
+              <input type="number" id="isaDeviation" value="0" placeholder="ISA deviation" class="form-control" oninput="calculateISA()" style="text-align: center;">
+            </div>
+            <div class="result" id="isaResult" style="margin-top: 15px;">
+              <div>Standard Temp: <span id="isaTemp">15.0</span> °C</div>
+              <div>Actual Temp: <span id="actualTemp">15.0</span> °C</div>
+              <div>Pressure: <span id="isaPressure">29.92</span> inHg</div>
+              <div>Density Altitude: <span id="densityAlt">0</span> ft</div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="bubble">
+      <thead>
+        <tr>
+          <th colspan="2">Wind Component</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td colspan="2" style="padding: 15px;">
+            <div class="input-group">
+              <label for="windSpeed">Wind Speed (kts)</label>
+              <input type="number" id="windSpeed" value="0" placeholder="Wind speed" class="form-control" oninput="calculateWindComponents()" style="text-align: center;">
+            </div>
+            <div class="input-group" style="margin: 15px 0;">
+              <label for="windAngle">Wind Angle (relative to runway)</label>
+              <input type="number" id="windAngle" value="0" placeholder="0-90 degrees" min="0" max="90" class="form-control" oninput="calculateWindComponents()" style="text-align: center;">
+            </div>
+            <div class="result" id="windResult" style="margin-top: 15px;">
+              <div>Headwind: <span id="headwind">0</span> kts</div>
+              <div>Crosswind: <span id="crosswind">0</span> kts</div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // Conversion factors
+    const conversions = {
+      // Length/Distance
+      feetToMeters: 0.3048,
+      metersToFeet: 3.28084,
+      nmToMiles: 1.15078,
+      milesToNm: 0.868976,
+      nmToKm: 1.852,
+      kmToNm: 0.539957,
+      
+      // Speed
+      knotsToKmh: 1.852,
+      kmhToKnots: 0.539957,
+      knotsToMph: 1.15078,
+      mphToKnots: 0.868976,
+      
+      // Weight
+      lbsToKg: 0.453592,
+      kgToLbs: 2.20462,
+      
+      // Temperature formulas
+      cToF: (c) => (c * 9/5) + 32,
+      fToC: (f) => (f - 32) * 5/9,
+      cToK: (c) => c + 273.15,
+      kToC: (k) => k - 273.15
+    };
+
+    // Altitude Conversions
+    function convertFromFeet(value) {
+      if (value === '') return;
+      const feet = parseFloat(value);
+      const meters = feet * conversions.feetToMeters;
+      const flightLevel = 'FL' + Math.round(feet / 100).toString().padStart(3, '0');
+      
+      document.getElementById('metersInput').value = meters.toFixed(2);
+      document.getElementById('flInput').value = flightLevel.replace('FL', '');
+      
+      document.getElementById('feetResult').textContent = feet.toFixed(0);
+      document.getElementById('metersResult').textContent = meters.toFixed(0);
+      document.getElementById('flResult').textContent = flightLevel;
+    }
+
+    function convertFromMeters(value) {
+      if (value === '') return;
+      const meters = parseFloat(value);
+      const feet = meters * conversions.metersToFeet;
+      const flightLevel = 'FL' + Math.round(feet / 100).toString().padStart(3, '0');
+      
+      document.getElementById('feetInput').value = feet.toFixed(2);
+      document.getElementById('flInput').value = flightLevel.replace('FL', '');
+      
+      document.getElementById('feetResult').textContent = Math.round(feet);
+      document.getElementById('metersResult').textContent = Math.round(meters);
+      document.getElementById('flResult').textContent = flightLevel;
+    }
+
+    function convertFromFL(value) {
+      if (value === '') return;
+      const fl = parseInt(value.replace('FL', '')) * 100;
+      const feet = fl;
+      const meters = feet * conversions.feetToMeters;
+      
+      document.getElementById('feetInput').value = feet.toFixed(0);
+      document.getElementById('metersInput').value = meters.toFixed(2);
+      
+      document.getElementById('feetResult').textContent = feet.toFixed(0);
+      document.getElementById('metersResult').textContent = Math.round(meters);
+      document.getElementById('flResult').textContent = 'FL' + (feet / 100).toFixed(0).padStart(3, '0');
+    }
+
+    // Speed Conversions
+    function convertFromKnots(value) {
+      if (value === '') return;
+      const knots = parseFloat(value);
+      const kmh = knots * conversions.knotsToKmh;
+      const mph = knots * conversions.knotsToMph;
+      
+      document.getElementById('kmhInput').value = kmh.toFixed(2);
+      document.getElementById('mphInput').value = mph.toFixed(2);
+      
+      document.getElementById('knotsResult').textContent = knots.toFixed(1);
+      document.getElementById('kmhResult').textContent = kmh.toFixed(1);
+      document.getElementById('mphResult').textContent = mph.toFixed(1);
+    }
+
+    function convertFromKmh(value) {
+      if (value === '') return;
+      const kmh = parseFloat(value);
+      const knots = kmh * conversions.kmhToKnots;
+      const mph = knots * conversions.knotsToMph;
+      
+      document.getElementById('knotsInput').value = knots.toFixed(2);
+      document.getElementById('mphInput').value = mph.toFixed(2);
+      
+      document.getElementById('knotsResult').textContent = knots.toFixed(1);
+      document.getElementById('kmhResult').textContent = kmh.toFixed(1);
+      document.getElementById('mphResult').textContent = mph.toFixed(1);
+    }
+
+    function convertFromMph(value) {
+      if (value === '') return;
+      const mph = parseFloat(value);
+      const knots = mph * conversions.mphToKnots;
+      const kmh = knots * conversions.knotsToKmh;
+      
+      document.getElementById('knotsInput').value = knots.toFixed(2);
+      document.getElementById('kmhInput').value = kmh.toFixed(2);
+      
+      document.getElementById('knotsResult').textContent = knots.toFixed(1);
+      document.getElementById('kmhResult').textContent = kmh.toFixed(1);
+      document.getElementById('mphResult').textContent = mph.toFixed(1);
+    }
+
+    // Distance Conversions
+    function convertFromNm(value) {
+      if (value === '') return;
+      const nm = parseFloat(value);
+      const sm = nm * conversions.nmToMiles;
+      const km = nm * conversions.nmToKm;
+      
+      document.getElementById('smInput').value = sm.toFixed(2);
+      document.getElementById('kmInput').value = km.toFixed(2);
+      
+      document.getElementById('nmResult').textContent = nm.toFixed(2);
+      document.getElementById('smResult').textContent = sm.toFixed(2);
+      document.getElementById('kmResult').textContent = km.toFixed(2);
+    }
+
+    function convertFromSm(value) {
+      if (value === '') return;
+      const sm = parseFloat(value);
+      const nm = sm * conversions.milesToNm;
+      const km = nm * conversions.nmToKm;
+      
+      document.getElementById('nmInput').value = nm.toFixed(2);
+      document.getElementById('kmInput').value = km.toFixed(2);
+      
+      document.getElementById('nmResult').textContent = nm.toFixed(2);
+      document.getElementById('smResult').textContent = sm.toFixed(2);
+      document.getElementById('kmResult').textContent = km.toFixed(2);
+    }
+
+    function convertFromKm(value) {
+      if (value === '') return;
+      const km = parseFloat(value);
+      const nm = km * conversions.kmToNm;
+      const sm = nm * conversions.nmToMiles;
+      
+      document.getElementById('nmInput').value = nm.toFixed(2);
+      document.getElementById('smInput').value = sm.toFixed(2);
+      
+      document.getElementById('nmResult').textContent = nm.toFixed(2);
+      document.getElementById('smResult').textContent = sm.toFixed(2);
+      document.getElementById('kmResult').textContent = km.toFixed(2);
+    }
+
+    // Fuel Conversions
+    function getFuelDensity() {
+      const densityInput = document.getElementById('fuelDensity');
+      return densityInput ? parseFloat(densityInput.value) : 6.71; // Default to Jet A-1
+    }
+
+    function updateFuelConversions() {
+      // Trigger update from the first non-empty input
+      const lbsInput = document.getElementById('lbsInput');
+      const kgInput = document.getElementById('kgInput');
+      const usgInput = document.getElementById('usgInput');
+      
+      if (lbsInput.value) convertFromLbs(lbsInput.value);
+      else if (kgInput.value) convertFromKg(kgInput.value);
+      else if (usgInput.value) convertFromUsg(usgInput.value);
+    }
+
+    function convertFromLbs(value) {
+      if (value === '') return;
+      const density = getFuelDensity();
+      const lbs = parseFloat(value);
+      const kg = lbs * conversions.lbsToKg;
+      const usg = lbs / density;
+      
+      document.getElementById('kgInput').value = kg.toFixed(2);
+      document.getElementById('usgInput').value = usg.toFixed(2);
+      
+      document.getElementById('lbsResult').textContent = lbs.toFixed(1);
+      document.getElementById('kgResult').textContent = kg.toFixed(1);
+      document.getElementById('usgResult').textContent = usg.toFixed(1);
+    }
+
+    function convertFromKg(value) {
+      if (value === '') return;
+      const density = getFuelDensity();
+      const kg = parseFloat(value);
+      const lbs = kg * conversions.kgToLbs;
+      const usg = lbs / density;
+      
+      document.getElementById('lbsInput').value = lbs.toFixed(2);
+      document.getElementById('usgInput').value = usg.toFixed(2);
+      
+      document.getElementById('lbsResult').textContent = lbs.toFixed(1);
+      document.getElementById('kgResult').textContent = kg.toFixed(1);
+      document.getElementById('usgResult').textContent = usg.toFixed(1);
+    }
+
+    function convertFromUsg(value) {
+      if (value === '') return;
+      const density = getFuelDensity();
+      const usg = parseFloat(value);
+      const lbs = usg * density;
+      const kg = lbs * conversions.lbsToKg;
+      
+      document.getElementById('lbsInput').value = lbs.toFixed(2);
+      document.getElementById('kgInput').value = kg.toFixed(2);
+      
+      document.getElementById('lbsResult').textContent = lbs.toFixed(1);
+      document.getElementById('kgResult').textContent = kg.toFixed(1);
+      document.getElementById('usgResult').textContent = usg.toFixed(1);
+    }
+
+    // Temperature Conversions
+    function convertFromCelsius(value) {
+      if (value === '') return;
+      const celsius = parseFloat(value);
+      const fahrenheit = conversions.cToF(celsius);
+      const kelvin = conversions.cToK(celsius);
+      
+      document.getElementById('fahrenheitInput').value = fahrenheit.toFixed(2);
+      document.getElementById('kelvinInput').value = kelvin.toFixed(2);
+      
+      document.getElementById('celsiusResult').textContent = celsius.toFixed(1);
+      document.getElementById('fahrenheitResult').textContent = fahrenheit.toFixed(1);
+      document.getElementById('kelvinResult').textContent = kelvin.toFixed(2);
+    }
+
+    function convertFromFahrenheit(value) {
+      if (value === '') return;
+      const fahrenheit = parseFloat(value);
+      const celsius = conversions.fToC(fahrenheit);
+      const kelvin = conversions.cToK(celsius);
+      
+      document.getElementById('celsiusInput').value = celsius.toFixed(2);
+      document.getElementById('kelvinInput').value = kelvin.toFixed(2);
+      
+      document.getElementById('celsiusResult').textContent = celsius.toFixed(1);
+      document.getElementById('fahrenheitResult').textContent = fahrenheit.toFixed(1);
+      document.getElementById('kelvinResult').textContent = kelvin.toFixed(2);
+    }
+
+    function convertFromKelvin(value) {
+      if (value === '') return;
+      const kelvin = parseFloat(value);
+      const celsius = conversions.kToC(kelvin);
+      const fahrenheit = conversions.cToF(celsius);
+      
+      document.getElementById('celsiusInput').value = celsius.toFixed(2);
+      document.getElementById('fahrenheitInput').value = fahrenheit.toFixed(2);
+      
+      document.getElementById('celsiusResult').textContent = celsius.toFixed(1);
+      document.getElementById('fahrenheitResult').textContent = fahrenheit.toFixed(1);
+      document.getElementById('kelvinResult').textContent = kelvin.toFixed(2);
+    }
+
+    // Weight & Balance - Calculate Moment
+    function calculateMoment() {
+      const weightInput = document.getElementById('weight');
+      const armInput = document.getElementById('arm');
+      const momentResult = document.getElementById('momentResult');
+      
+      if (!weightInput || !armInput || !momentResult) return;
+      
+      const weight = parseFloat(weightInput.value) || 0;
+      const arm = parseFloat(armInput.value) || 0;
+      const moment = weight * arm;
+      
+      momentResult.textContent = moment.toFixed(0);
+    }
+
+    // ISA Calculator
+    function calculateISA() {
+      const isaAltitudeInput = document.getElementById('isaAltitude');
+      const isaDeviationInput = document.getElementById('isaDeviation');
+      
+      if (!isaAltitudeInput || !isaDeviationInput) return;
+      
+      const altitude = parseFloat(isaAltitudeInput.value) || 0;
+      const deviation = parseFloat(isaDeviationInput.value) || 0;
+      
+      // Standard temperature lapse rate: 1.98°C per 1000 ft
+      const standardTemp = 15 - (altitude * 0.00198);
+      const actualTemp = standardTemp + deviation;
+      
+      // Standard pressure calculation (simplified)
+      const pressure = 29.92 * Math.pow(1 - (0.0000068756 * altitude), 5.2559);
+      
+      // Density altitude (simplified)
+      const pressureAltitude = altitude + (120 * (actualTemp - standardTemp));
+      
+      // Update results
+      const isaTemp = document.getElementById('isaTemp');
+      const actualTempEl = document.getElementById('actualTemp');
+      const isaPressure = document.getElementById('isaPressure');
+      const densityAlt = document.getElementById('densityAlt');
+      
+      if (isaTemp) isaTemp.textContent = standardTemp.toFixed(1);
+      if (actualTempEl) actualTempEl.textContent = actualTemp.toFixed(1);
+      if (isaPressure) isaPressure.textContent = pressure.toFixed(2);
+      if (densityAlt) densityAlt.textContent = Math.round(pressureAltitude);
+    }
+
+    // Wind Component Calculator
+    function calculateWindComponents() {
+      const windSpeedInput = document.getElementById('windSpeed');
+      const windAngleInput = document.getElementById('windAngle');
+      const headwindEl = document.getElementById('headwind');
+      const crosswindEl = document.getElementById('crosswind');
+      
+      if (!windSpeedInput || !windAngleInput || !headwindEl || !crosswindEl) return;
+      
+      const windSpeed = parseFloat(windSpeedInput.value) || 0;
+      const windAngle = parseFloat(windAngleInput.value) || 0;
+      
+      // Convert angle to radians
+      const angleRad = (windAngle * Math.PI) / 180;
+      
+      // Calculate components
+      const headwind = Math.cos(angleRad) * windSpeed;
+      const crosswind = Math.sin(angleRad) * windSpeed;
+      
+      // Update results
+      headwindEl.textContent = Math.abs(headwind).toFixed(1);
+      crosswindEl.textContent = Math.abs(crosswind).toFixed(1);
+    }
+
+    // Initialize the app
+    document.addEventListener('DOMContentLoaded', function() {
+      // Set initial values
+      convertFromFeet(0);
+      convertFromKnots(0);
+      convertFromNm(0);
+      convertFromLbs(0);
+      convertFromCelsius(15); // Standard ISA temperature at sea level
+      
+      // Calculate initial values
+      calculateMoment();
+      calculateISA();
+      calculateWindComponents();
+    });
+  </script>
+</body>
+</html>
